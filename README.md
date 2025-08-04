@@ -1,1 +1,2 @@
-# sp6-2_smart-table_starter
+https://github.com/Ramir-Zhaksygulov/smart-table
+https://ramir-zhaksygulov.github.io/smart-table/
