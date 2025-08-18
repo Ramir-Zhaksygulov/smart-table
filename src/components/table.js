@@ -1,17 +1,16 @@
 import { cloneTemplate } from "../lib/utils.js";
 
 /**
- * Инициализирует таблицу и вызывает коллбэк при любых изменениях и нажатиях на кнопки
- *
- * @param {Object} settings
- * @param {(action: HTMLButtonElement | undefined) => void} onAction
+ * Инициализируем таблицу и вызываем коллбэк при любых изменениях и нажатиях на кнопки
+ * @param {Object} settings - настройки таблицы
+ * @param {(action: HTMLButtonElement | undefined) => void} onAction - коллбэк на изменения/действия
  * @returns {{container: Node, elements: *, render: render}}
  */
 export function initTable(settings, onAction) {
   const { tableTemplate, rowTemplate, before, after } = settings;
   const root = cloneTemplate(tableTemplate);
 
-  // @todo: #1.2 —  вывести дополнительные шаблоны до и после таблицы
+  // Вставляем дополнительные шаблоны до таблицы
   before
     .slice()
     .reverse()
@@ -20,12 +19,13 @@ export function initTable(settings, onAction) {
       root.container.prepend(root[subName].container);
     });
 
+  // Вставляем дополнительные шаблоны после таблицы
   after.forEach((subName) => {
     root[subName] = cloneTemplate(subName);
     root.container.append(root[subName].container);
   });
 
-  // @todo: #1.3 —  обработать события и вызвать onAction()
+  // Обработчики событий: change, reset, submit
   root.container.addEventListener("change", () => {
     onAction();
   });
@@ -38,12 +38,12 @@ export function initTable(settings, onAction) {
     e.preventDefault();
     onAction(e.submitter);
   });
-    
-    
-  // @todo: #1.3
 
+  /**
+   * Рендерит данные в таблицу
+   * @param {Array<Object>} data - массив объектов с данными для таблицы
+   */
   const render = (data) => {
-    // @todo: #1.1 — преобразовать данные в массив строк на основе шаблона rowTemplate
     const nextRows = [];
     data.forEach((item) => {
       const row = cloneTemplate(rowTemplate);
