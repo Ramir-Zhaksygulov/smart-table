@@ -26,9 +26,7 @@ export function initTable(settings, onAction) {
   });
 
   // Обработчики событий: change, reset, submit
-  root.container.addEventListener("change", () => {
-    onAction();
-  });
+  root.container.addEventListener("change", onAction);
 
   root.container.addEventListener("reset", () => {
     setTimeout(onAction);

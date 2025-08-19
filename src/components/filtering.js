@@ -17,6 +17,19 @@ export function initFiltering(elements) {
   // Применяем выбранные значения фильтров и возвращаем объект запроса
   // Параметры state и action передаются для унификации сигнатур с другими функциями
   const applyFiltering = (query, state, action) => {
+    // код с обработкой очистки поля
+    Object.keys(elements).forEach((key) => {
+      const el = elements[key];
+      if (!el) return;
+
+      if (["INPUT", "SELECT"].includes(el.tagName)) {
+        if (!el.value) {
+          // если поле пустое — удаляем из query
+          delete query[`filter[${el.name}]`];
+        }
+      }
+    });
+
     const filter = {};
     Object.keys(elements).forEach((key) => {
       if (elements[key]) {
@@ -32,7 +45,7 @@ export function initFiltering(elements) {
     // Если есть активные фильтры, объединяем их с текущим объектом запроса
     return Object.keys(filter).length
       ? Object.assign({}, query, filter)
-      : query; 
+      : query;
   };
 
   return {
