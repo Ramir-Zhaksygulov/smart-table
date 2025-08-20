@@ -67,7 +67,8 @@ const applySearching = initSearching("search");
 
 // Инициализация фильтров и обновление индексов
 const { applyFiltering, updateIndexes } = initFiltering(
-  sampleTable.filter.elements
+  sampleTable.filter.elements,
+  () => render()
 );
 
 // Инициализация сортировки по колонкам
@@ -96,6 +97,7 @@ appRoot.appendChild(sampleTable.container);
 // Получение индексов продавцов и обновление фильтра
 async function init() {
   const indexes = await api.getIndexes();
+
   updateIndexes(sampleTable.filter.elements, {
     searchBySeller: indexes.sellers,
   });

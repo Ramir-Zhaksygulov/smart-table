@@ -1,55 +1,62 @@
-// Инициализация фильтров: возвращаем методы для обновления опций и применения фильтрации
-export function initFiltering(elements) {
-  // Обновляем опции фильтров на основе переданных индексов
+export function initFiltering(elements, onChange) {
+  // Обновляем options в select на основе индексов, полученных с сервера
   const updateIndexes = (elements, indexes) => {
     Object.keys(indexes).forEach((elementName) => {
       elements[elementName].append(
         ...Object.values(indexes[elementName]).map((name) => {
           const el = document.createElement("option");
-          el.textContent = name; // отображаемое имя
-          el.value = name; // значение для запроса
+          el.textContent = name;
+          el.value = name;
           return el;
         })
       );
     });
   };
 
-  // Применяем выбранные значения фильтров и возвращаем объект запроса
-  // Параметры state и action передаются для унификации сигнатур с другими функциями
+  // Навешиваем автоматическое применение фильтров при изменении input/select
+  Object.values(elements).forEach((el) => {
+    if (!el) return;
+    if (el.tagName === "INPUT") el.addEventListener("input", () => onChange());
+    if (el.tagName === "SELECT")
+      el.addEventListener("change", () => onChange());
+  });
+
+  // Применяем фильтры к query для запроса на сервер
   const applyFiltering = (query, state, action) => {
-    // код с обработкой очистки поля
+    // --- Сбрасываем все фильтры при нажатии кнопки Reset ---
+    if (action && action.dataset.name === "reset") {
+      Object.keys(elements).forEach((key) => {
+        const el = elements[key];
+        if (!el) return;
+        if (["INPUT", "SELECT"].includes(el.tagName)) el.value = "";
+      });
+      state.filter = {};
+      return query;
+    }
+
+    // --- Сбрасываем конкретное поле при нажатии кнопки Clear ---
+    if (action && action.name === "clear" && action.dataset.field) {
+      const field = action.dataset.field;
+      const el = elements[`searchBy${field[0].toUpperCase()}${field.slice(1)}`];
+      if (el) el.value = "";
+      if (state.filter) delete state.filter[field];
+    }
+
+    // --- Собираем текущие значения фильтров в объект для запроса на сервер ---
+    const filter = {};
     Object.keys(elements).forEach((key) => {
       const el = elements[key];
       if (!el) return;
-
-      if (["INPUT", "SELECT"].includes(el.tagName)) {
-        if (!el.value) {
-          // если поле пустое — удаляем из query
-          delete query[`filter[${el.name}]`];
-        }
+      if (["INPUT", "SELECT"].includes(el.tagName) && el.value) {
+        filter[`filter[${el.name}]`] = el.value;
       }
     });
 
-    const filter = {};
-    Object.keys(elements).forEach((key) => {
-      if (elements[key]) {
-        if (
-          ["INPUT", "SELECT"].includes(elements[key].tagName) &&
-          elements[key].value
-        ) {
-          filter[`filter[${elements[key].name}]`] = elements[key].value;
-        }
-      }
-    });
+    state.filter = filter;
 
-    // Если есть активные фильтры, объединяем их с текущим объектом запроса
-    return Object.keys(filter).length
-      ? Object.assign({}, query, filter)
-      : query;
+    // Если фильтры есть, объединяем с query, иначе возвращаем исходный query
+    return Object.keys(filter).length ? { ...query, ...filter } : query;
   };
 
-  return {
-    updateIndexes,
-    applyFiltering,
-  };
+  return { updateIndexes, applyFiltering };
 }
